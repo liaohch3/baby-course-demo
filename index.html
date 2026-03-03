@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>信息技术课堂互动空间</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 30px 0 20px;
+      color: white;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    /* Nickname bar */
+    .nickname-bar {
+      background: white;
+      border-radius: 16px;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .nickname-bar label {
+      font-weight: 600;
+      font-size: 1em;
+      white-space: nowrap;
+    }
+    .nickname-bar input {
+      flex: 1;
+      min-width: 120px;
+      padding: 10px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+      outline: none;
+    }
+    .nickname-bar input:focus {
+      border-color: #667eea;
+    }
+    .nickname-bar .status {
+      font-size: 0.9em;
+      color: #888;
+    }
+    .nickname-bar .status.active {
+      color: #4CAF50;
+      font-weight: 600;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(255,255,255,0.3);
+      color: white;
+    }
+    .tab-btn.active {
+      background: white;
+      color: #667eea;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .tab-btn:hover:not(.active) {
+      background: rgba(255,255,255,0.5);
+    }
+
+    /* Sections */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* Card */
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 1.3em;
+      margin-bottom: 16px;
+      color: #444;
+    }
+
+    /* Message form */
+    .msg-form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .msg-form textarea {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 1em;
+      resize: none;
+      height: 50px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .msg-form textarea:focus {
+      border-color: #667eea;
+    }
+    .msg-form button {
+      padding: 12px 28px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      white-space: nowrap;
+    }
+    .msg-form button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+    }
+    .msg-form button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Messages list */
+    .messages-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 500px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .messages-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .messages-list::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 3px;
+    }
+    .msg-item {
+      background: #f8f9ff;
+      border-radius: 12px;
+      padding: 14px 18px;
+      animation: fadeIn 0.3s ease;
+    }
+    .msg-item .msg-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .msg-item .msg-nickname {
+      font-weight: 600;
+      color: #667eea;
+      font-size: 0.95em;
+    }
+    .msg-item .msg-time {
+      font-size: 0.8em;
+      color: #aaa;
+    }
+    .msg-item .msg-content {
+      font-size: 1em;
+      line-height: 1.5;
+      color: #555;
+      word-break: break-word;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Poll section */
+    .poll-question {
+      font-size: 1.2em;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #444;
+    }
+    .poll-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .poll-option {
+      position: relative;
+      padding: 16px 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      overflow: hidden;
+      background: white;
+    }
+    .poll-option:hover {
+      border-color: #667eea;
+      transform: translateX(4px);
+    }
+    .poll-option.voted {
+      border-color: #667eea;
+      background: #f0f2ff;
+    }
+    .poll-option.disabled {
+      cursor: default;
+    }
+    .poll-option.disabled:hover {
+      transform: none;
+    }
+    .poll-option .poll-bar {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: linear-gradient(90deg, rgba(102,126,234,0.15), rgba(118,75,162,0.1));
+      border-radius: 10px;
+      transition: width 0.8s ease;
+      width: 0;
+    }
+    .poll-option .poll-label {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 500;
+    }
+    .poll-option .poll-label .option-text {
+      font-size: 1.05em;
+    }
+    .poll-option .poll-label .option-count {
+      font-size: 0.9em;
+      color: #888;
+      font-weight: 600;
+    }
+
+    .poll-total {
+      text-align: center;
+      font-size: 0.95em;
+      color: #888;
+      margin-top: 8px;
+    }
+
+    .poll-voted-msg {
+      text-align: center;
+      color: #4CAF50;
+      font-weight: 600;
+      margin-bottom: 16px;
+      font-size: 0.95em;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #aaa;
+    }
+    .empty-state .icon {
+      font-size: 3em;
+      margin-bottom: 12px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #333;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 0.95em;
+      transition: transform 0.3s ease;
+      z-index: 1000;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #888;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .container { padding: 12px; }
+      .header h1 { font-size: 1.5em; }
+      .nickname-bar { padding: 12px 16px; }
+      .card { padding: 18px; }
+      .msg-form { flex-direction: column; }
+      .msg-form button { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <h1>&#x1F4BB; &#x4FE1;&#x606F;&#x6280;&#x672F;&#x8BFE;&#x5802;&#x4E92;&#x52A8;&#x7A7A;&#x95F4;</h1>
+    <p>&#x6B22;&#x8FCE;&#x6765;&#x5230;&#x4ECA;&#x5929;&#x7684;&#x8BFE;&#x5802;&#xFF01;&#x5728;&#x8FD9;&#x91CC;&#x7559;&#x4E0B;&#x4F60;&#x7684;&#x60F3;&#x6CD5; &#x2728;</p>
+  </div>
+
+  <!-- Nickname -->
+  <div class="nickname-bar">
+    <label>&#x6211;&#x7684;&#x6635;&#x79F0;&#xFF1A;</label>
+    <input type="text" id="nicknameInput" placeholder="&#x8F93;&#x5165;&#x4F60;&#x7684;&#x6635;&#x79F0;..." maxlength="20">
+    <span class="status" id="nicknameStatus">&#x672A;&#x8BBE;&#x7F6E;</span>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('wall')">&#x1F4AC; &#x7559;&#x8A00;&#x58C1;</button>
+    <button class="tab-btn" onclick="switchTab('poll')">&#x1F4CA; &#x8BFE;&#x5802;&#x6295;&#x7968;</button>
+  </div>
+
+  <!-- Message Wall -->
+  <div id="wallSection" class="section active">
+    <div class="card">
+      <h2>&#x1F4DD; &#x53D1;&#x8868;&#x7559;&#x8A00;</h2>
+      <div class="msg-form">
+        <textarea id="msgInput" placeholder="&#x5199;&#x4E0B;&#x4F60;&#x7684;&#x60F3;&#x6CD5;&#x3001;&#x95EE;&#x9898;&#x6216;&#x611F;&#x60F3;..." maxlength="500"></textarea>
+        <button id="sendBtn" onclick="sendMessage()">&#x53D1;&#x9001;</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>&#x1F30D; &#x5168;&#x73ED;&#x7559;&#x8A00; <span id="msgCount" style="font-weight:normal;font-size:0.8em;color:#aaa;"></span></h2>
+      <div id="messagesList" class="messages-list">
+        <div class="loading">&#x52A0;&#x8F7D;&#x4E2D;...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Poll -->
+  <div id="pollSection" class="section">
+    <div class="card">
+      <div class="poll-question">&#x1F914; &#x4F60;&#x8BA4;&#x4E3A;&#x672A;&#x6765;&#x6700;&#x503C;&#x5F97;&#x5B66;&#x4E60;&#x7684;&#x7F16;&#x7A0B;&#x8BED;&#x8A00;&#x662F;&#xFF1F;</div>
+
+      <div id="votedMsg" class="poll-voted-msg" style="display:none;">&#x2705; &#x4F60;&#x5DF2;&#x7ECF;&#x6295;&#x8FC7;&#x7968;&#x4E86;&#xFF01;</div>
+
+      <div class="poll-options" id="pollOptions">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="poll-total" id="pollTotal"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script>
+  // ========== Supabase 配置 ==========
+  const SUPABASE_URL = 'https://mcvtrzurscmayectoowc.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jdnRyenVyc2NtYXllY3Rvb3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0OTY5NzAsImV4cCI6MjA4ODA3Mjk3MH0.SjsKZyLy04WGuIKovVHtaa3N93qmV_-dfgSy6_bYJJs';
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ========== 投票选项配置 ==========
+  const POLL_OPTIONS = ['Python', 'JavaScript', 'C/C++', 'Java', 'Scratch'];
+
+  // ========== 昵称管理 ==========
+  const nicknameInput = document.getElementById('nicknameInput');
+  const nicknameStatus = document.getElementById('nicknameStatus');
+
+  // 从 localStorage 读取昵称
+  let nickname = localStorage.getItem('classroom_nickname') || '';
+  if (nickname) {
+    nicknameInput.value = nickname;
+    nicknameStatus.textContent = '已设置 ✓';
+    nicknameStatus.classList.add('active');
+  }
+
+  nicknameInput.addEventListener('input', () => {
+    nickname = nicknameInput.value.trim();
+    if (nickname) {
+      localStorage.setItem('classroom_nickname', nickname);
+      nicknameStatus.textContent = '已设置 ✓';
+      nicknameStatus.classList.add('active');
+    } else {
+      localStorage.removeItem('classroom_nickname');
+      nicknameStatus.textContent = '未设置';
+      nicknameStatus.classList.remove('active');
+    }
+  });
+
+  // ========== Tab 切换 ==========
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', (tab === 'wall' && i === 0) || (tab === 'poll' && i === 1));
+    });
+    document.getElementById('wallSection').classList.toggle('active', tab === 'wall');
+    document.getElementById('pollSection').classList.toggle('active', tab === 'poll');
+
+    if (tab === 'poll') loadPollResults();
+  }
+
+  // ========== Toast 提示 ==========
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  // ========== 留言墙功能 ==========
+  async function sendMessage() {
+    if (!nickname) {
+      showToast('请先设置你的昵称！');
+      nicknameInput.focus();
+      return;
+    }
+
+    const content = document.getElementById('msgInput').value.trim();
+    if (!content) {
+      showToast('留言内容不能为空！');
+      return;
+    }
+
+    const btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    btn.textContent = '发送中...';
+
+    const { error } = await supabase.from('messages').insert({
+      nickname: nickname,
+      content: content
+    });
+
+    btn.disabled = false;
+    btn.textContent = '发送';
+
+    if (error) {
+      console.error('发送失败:', error);
+      showToast('发送失败，请重试');
+      return;
+    }
+
+    document.getElementById('msgInput').value = '';
+    showToast('发送成功！');
+    loadMessages();
+  }
+
+  // 允许按 Enter 发送（Shift+Enter 换行）
+  document.getElementById('msgInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  async function loadMessages() {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    const container = document.getElementById('messagesList');
+
+    if (error) {
+      container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>加载失败，请刷新页面重试</p></div>';
+      console.error('加载留言失败:', error);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="icon">💬</div><p>还没有留言，做第一个发言的人吧！</p></div>';
+      document.getElementById('msgCount').textContent = '';
+      return;
+    }
+
+    document.getElementById('msgCount').textContent = `(${data.length}条)`;
+
+    container.innerHTML = data.map(msg => `
+      <div class="msg-item">
+        <div class="msg-header">
+          <span class="msg-nickname">${escapeHtml(msg.nickname)}</span>
+          <span class="msg-time">${formatTime(msg.created_at)}</span>
+        </div>
+        <div class="msg-content">${escapeHtml(msg.content)}</div>
+      </div>
+    `).join('');
+  }
+
+  // ========== 投票功能 ==========
+  let hasVoted = localStorage.getItem('classroom_voted') === 'true';
+
+  function renderPollOptions(results) {
+    const container = document.getElementById('pollOptions');
+    const total = Object.values(results).reduce((a, b) => a + b, 0);
+
+    container.innerHTML = POLL_OPTIONS.map(opt => {
+      const count = results[opt] || 0;
+      const pct = total > 0 ? Math.round(count / total * 100) : 0;
+      const isVoted = hasVoted;
+      return `
+        <div class="poll-option ${isVoted ? 'disabled' : ''} ${localStorage.getItem('classroom_voted_option') === opt ? 'voted' : ''}"
+             onclick="${isVoted ? '' : `vote('${opt}')`}">
+          <div class="poll-bar" style="width: ${isVoted ? pct : 0}%"></div>
+          <div class="poll-label">
+            <span class="option-text">${opt}</span>
+            <span class="option-count">${isVoted ? `${count}票 (${pct}%)` : ''}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // 动画：延迟显示进度条
+    if (hasVoted) {
+      setTimeout(() => {
+        document.querySelectorAll('.poll-option').forEach(el => {
+          const bar = el.querySelector('.poll-bar');
+          // re-trigger animation via reading offsetWidth
+          bar.style.width;
+        });
+      }, 50);
+    }
+
+    document.getElementById('pollTotal').textContent = total > 0 ? `共 ${total} 人参与投票` : '还没有人投票，快来做第一个！';
+    document.getElementById('votedMsg').style.display = hasVoted ? 'block' : 'none';
+  }
+
+  async function loadPollResults() {
+    const { data, error } = await supabase.from('poll_votes').select('option_text');
+
+    if (error) {
+      console.error('加载投票失败:', error);
+      return;
+    }
+
+    const results = {};
+    POLL_OPTIONS.forEach(opt => results[opt] = 0);
+    (data || []).forEach(v => {
+      if (results.hasOwnProperty(v.option_text)) {
+        results[v.option_text]++;
+      }
+    });
+
+    renderPollOptions(results);
+  }
+
+  async function vote(option) {
+    if (hasVoted) return;
+
+    if (!nickname) {
+      showToast('请先设置你的昵称！');
+      nicknameInput.focus();
+      return;
+    }
+
+    const { error } = await supabase.from('poll_votes').insert({
+      nickname: nickname,
+      option_text: option
+    });
+
+    if (error) {
+      console.error('投票失败:', error);
+      showToast('投票失败，请重试');
+      return;
+    }
+
+    hasVoted = true;
+    localStorage.setItem('classroom_voted', 'true');
+    localStorage.setItem('classroom_voted_option', option);
+    showToast('投票成功！');
+    loadPollResults();
+  }
+
+  // ========== 实时订阅 ==========
+  supabase.channel('messages-channel')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
+      loadMessages();
+    })
+    .subscribe();
+
+  supabase.channel('votes-channel')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'poll_votes' }, () => {
+      loadPollResults();
+    })
+    .subscribe();
+
+  // ========== 工具函数 ==========
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function formatTime(isoStr) {
+    const d = new Date(isoStr);
+    const now = new Date();
+    const diffMs = now - d;
+    const diffMin = Math.floor(diffMs / 60000);
+
+    if (diffMin < 1) return '刚刚';
+    if (diffMin < 60) return `${diffMin}分钟前`;
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return `${diffHour}小时前`;
+
+    return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
+  // ========== 初始化 ==========
+  loadMessages();
+  loadPollResults();
+</script>
+
+</body>
+</html>
